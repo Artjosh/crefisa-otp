@@ -50,7 +50,9 @@ const OtpCard = memo(
 
     const handleCopy = (e) => {
       if (isSelectionMode) return
-      e.stopPropagation()
+      if (e && e.stopPropagation) {
+        e.stopPropagation()
+      }
       navigator.clipboard.writeText(code)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
@@ -59,7 +61,9 @@ const OtpCard = memo(
     // Prevent actions when in selection mode
     const handleAction = (e, action) => {
       if (isSelectionMode) return
-      e.stopPropagation()
+      if (e && e.stopPropagation) {
+        e.stopPropagation()
+      }
       action()
     }
 
@@ -83,8 +87,8 @@ const OtpCard = memo(
             <h3 className="font-medium text-card-foreground text-center">{item.issuer || "Unknown"}</h3>
             <p className="text-sm text-muted-foreground text-center">{item.name || "Account"}</p>
             <div 
-              className="text-5xl font-mono font-semibold tracking-wider text-card-foreground cursor-pointer my-4"
-              onClick={(e) => handleAction(e, handleCopy)}
+              className="text-4xl font-mono font-semibold tracking-wider text-card-foreground cursor-pointer pt-4 pb-4"
+              onClick={(e) => handleCopy(e)}
             >
               {code}
             </div>
@@ -100,7 +104,7 @@ const OtpCard = memo(
                   variant="ghost"
                   size="icon"
                   className="h-10 w-10 text-muted-foreground hover:text-primary p-2"
-                  onClick={(e) => handleAction(e, handleCopy)}
+                  onClick={(e) => handleCopy(e)}
                 >
                   {isCopied ? <Check size={20} /> : <Copy size={20} />}
                 </Button>
