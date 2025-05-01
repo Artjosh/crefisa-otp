@@ -1,0 +1,75 @@
+{
+  "info": {
+    "_postman_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "name": "Crefisa OTP API",
+    "description": "Coleção para API da aplicação Crefisa OTP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"admin\",\n    \"password\": \"senha123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth"]
+        },
+        "description": "Autenticar usuário e obter token JWT"
+      },
+      "response": []
+    },
+    {
+      "name": "Obter Código OTP",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/otp/{{alias}}?processTotp=true",
+          "host": ["{{base_url}}"],
+          "path": ["api", "otp", "{{alias}}"],
+          "query": [
+            {
+              "key": "processTotp",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Obter código OTP atual e tempo restante para um alias específico"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alias",
+      "value": "my_otp_alias",
+      "type": "string"
+    }
+  ]
+}

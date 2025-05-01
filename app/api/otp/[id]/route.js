@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import admin from "@/lib/firebase-admin"
 import { verifyToken } from "@/lib/jwt"
+import { generateTOTP } from "@/lib/totp"
 
 // Configuração para garantir que a rota seja dinâmica e não estática
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+// Calcular tempo restante
+function getTimeRemaining(period = 30) {
+  return period - (Math.floor(Date.now() / 1000) % period);
+}
 
 // Função para buscar informações do usuário no banco de dados
 async function getUserFromDatabase(userId) {
@@ -34,6 +40,10 @@ async function getUserFromDatabase(userId) {
 // GET - Fetch a specific OTP item
 export async function GET(request, { params }) {
   console.log("API OTP ID - Requisição GET recebida")
+  
+  // Verificar se é solicitação de código TOTP
+  const { searchParams } = new URL(request.url);
+  const processTotp = searchParams.get('processTotp') === 'true';
   
   // Obter o cabeçalho de autorização
   const authHeader = request.headers.get("authorization")
@@ -103,7 +113,7 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const { id } = params
+    const id = decodeURIComponent(params.id)
     
     const db = admin.database()
     const itemRef = db.ref(`otp-items/${id}`)
@@ -123,6 +133,27 @@ export async function GET(request, { params }) {
         { error: "Você não tem permissão para acessar este item" },
         { status: 403 }
       )
+    }
+
+    // Se o parâmetro processTotp estiver presente, processar o código TOTP
+    if (processTotp) {
+      console.log("API OTP ID - Processando TOTP para o item:", id);
+      
+      const period = item.period || 30;
+      const totpCode = await generateTOTP(item.secret, {
+        digits: item.digits || 6,
+        algorithm: item.algorithm || 'SHA1',
+        period
+      });
+      
+      const timeRemaining = getTimeRemaining(period);
+      
+      // Retornando apenas alias, code e timeRemaining como solicitado
+      return NextResponse.json({
+        alias: id,
+        code: totpCode,
+        timeRemaining
+      });
     }
 
     console.log("API OTP ID - Item recuperado com sucesso:", id);
