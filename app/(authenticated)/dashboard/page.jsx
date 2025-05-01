@@ -4,8 +4,26 @@ import { useEffect, useState } from "react"
 import OtpDashboard from "@/components/otp-dashboard"
 import LoginError from "@/components/login-error"
 import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
 export default function Dashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse">Carregando...</div>
+      </main>
+    }>
+      <DashboardContent />
+    </Suspense>
+  )
+}
+
+function DashboardContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
