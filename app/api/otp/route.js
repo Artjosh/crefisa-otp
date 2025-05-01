@@ -203,7 +203,7 @@ export async function POST(request) {
     }
 
     const db = admin.database()
-    const ref = db.ref("otps")
+    const ref = db.ref("otp-items")
 
     // Create a new entry with a unique key
     const newItemRef = ref.push()
