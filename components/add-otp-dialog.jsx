@@ -8,19 +8,21 @@ import { CheckCircle, Loader2 } from "lucide-react"
 import QrUpload from "./qr-upload"
 import QrScanner from "./qr-scanner"
 import { useStore } from "@/lib/store"
+import { Button } from "@/components/ui/button"
 
-export default function AddOtpDialog({ open, onOpenChange }) {
+export default function AddOtpDialog({ open, onOpenChange, onSuccess }) {
   const [activeTab, setActiveTab] = useState("upload")
   const [successMessage, setSuccessMessage] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const { loadOtpItems } = useStore()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleQrCodeDetected = async (qrData) => {
     try {
       setIsProcessing(true)
       
       // Enviar o QR code diretamente para o servidor processar
-      const response = await fetch("/api/otp/parse", {
+      const response = await fetch("/api/otp/parse/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,6 +44,7 @@ export default function AddOtpDialog({ open, onOpenChange }) {
       setTimeout(() => {
         setSuccessMessage("")
         onOpenChange(false)
+        onSuccess()
       }, 1500)
     } catch (error) {
       console.error("Erro ao processar QR code:", error)
@@ -49,6 +52,12 @@ export default function AddOtpDialog({ open, onOpenChange }) {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    handleQrCodeDetected(event.target.qrData.value)
   }
 
   return (
@@ -82,7 +91,28 @@ export default function AddOtpDialog({ open, onOpenChange }) {
             </TabsContent>
           </Tabs>
         )}
+
+        {/* Botão de submit */}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+          className="w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adicionando...
+            </>
+          ) : (
+            "Adicionar"
+          )}
+        </Button>
       </DialogContent>
     </Dialog>
   )
 }
+
+AddOtpDialog.defaultProps = {
+  onSuccess: () => {},
+};

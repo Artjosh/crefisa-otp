@@ -5,37 +5,6 @@ import OtpDashboard from "@/components/otp-dashboard"
 import LoginError from "@/components/login-error"
 import { useRouter, useSearchParams } from "next/navigation"
 
-// Garante que todas as requisições incluam o token de autorização
-function configureAuthInterceptors() {
-  if (typeof window === 'undefined') return
-
-  const token = localStorage.getItem("token")
-  if (!token) return
-
-  console.log("Dashboard - Configurando interceptores de requisição com token")
-  
-  // Interceptar XMLHttpRequest
-  const originalXhrOpen = window.XMLHttpRequest.prototype.open
-  window.XMLHttpRequest.prototype.open = function(...args) {
-    const result = originalXhrOpen.apply(this, arguments)
-    this.setRequestHeader("Authorization", `Bearer ${token}`)
-    return result
-  }
-  
-  // Interceptar fetch
-  const originalFetch = window.fetch
-  window.fetch = function(url, options = {}) {
-    options = options || {}
-    options.headers = options.headers || {}
-    options.headers["Authorization"] = `Bearer ${token}`
-    console.log(`Adicionando token ao fetch para: ${url}`)
-    return originalFetch(url, options)
-  }
-  
-  console.log("Interceptores de autenticação configurados")
-  return true
-}
-
 export default function Dashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -43,11 +12,6 @@ export default function Dashboard() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const accessDenied = searchParams.get('accessDenied') === 'true'
-
-  // Configurar interceptores ANTES de qualquer requisição
-  useEffect(() => {
-    configureAuthInterceptors()
-  }, [])
 
   // Verificar autenticação
   useEffect(() => {

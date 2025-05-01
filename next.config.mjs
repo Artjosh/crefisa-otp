@@ -9,7 +9,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  trailingSlash: true,
+  trailingSlash: false,
   // Remover output: 'export' para permitir API routes dinâmicas
   // output: 'export', 
   // distDir: 'out',

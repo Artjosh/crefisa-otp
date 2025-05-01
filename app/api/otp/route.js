@@ -62,75 +62,77 @@ async function getOtpsByUserId(userId) {
 export async function GET(request) {
   console.log("API OTP - Requisição GET recebida")
   
-  // Obter o cabeçalho de autorização
-  const authHeader = request.headers.get("authorization")
-  console.log("API OTP - Cabeçalho de autorização:", authHeader || "Não encontrado")
-  
-  // Extrair o token do cabeçalho
-  const token = authHeader?.startsWith("Bearer ") 
-    ? authHeader.substring(7) 
-    : null
-  
-  console.log("API OTP - Token extraído:", token ? `${token.substring(0, 15)}...` : "Não encontrado")
-
-  // Verificar token
-  if (!token) {
-    console.log("API OTP - Token não fornecido")
-    return NextResponse.json(
-      { error: "Não autorizado. Token não fornecido." },
-      { status: 401 }
-    )
-  }
-
-  // Verificar o token (apenas assinatura e expiração)
-  const decoded = verifyToken(token)
-  console.log("API OTP - Resultado da verificação do token:", decoded ? "Válido" : "Inválido")
-  
-  if (!decoded) {
-    console.log("API OTP - Token inválido ou expirado")
-    return NextResponse.json(
-      { error: "Não autorizado. Token inválido." },
-      { status: 401 }
-    )
-  }
-
-  // IMPORTANTE: Buscar as informações reais do usuário no banco de dados
-  const userId = decoded.userId;
-  console.log("API OTP - Buscando dados do usuário no banco, ID:", userId);
-  
-  const user = await getUserFromDatabase(userId);
-  
-  if (!user) {
-    console.log("API OTP - Usuário não encontrado no banco");
-    return NextResponse.json(
-      { error: "Usuário não encontrado ou inválido" },
-      { status: 401 }
-    );
-  }
-  
-  // Verificar se usuário é admin USANDO DADOS DO BANCO
-  const isAdmin = user.type === 'admin';
-  console.log("API OTP - Usuário verificado do banco:", user.name, "Tipo:", user.type, "Admin:", isAdmin);
-  
-  // Se não for admin, negar acesso
-  if (!isAdmin) {
-    console.log("API OTP - Acesso negado: usuário não é admin");
-    return NextResponse.json(
-      { error: "Acesso permitido apenas para administradores" },
-      { status: 403 }
-    );
-  }
-
   try {
+    // Obter o cabeçalho de autorização
+    const authHeader = request.headers.get("authorization")
+    console.log("API OTP - Cabeçalho de autorização:", authHeader ? "Presente" : "Não encontrado")
+    
+    // Extrair o token do cabeçalho
+    const token = authHeader?.startsWith("Bearer ") 
+      ? authHeader.substring(7) 
+      : null
+    
+    console.log("API OTP - Token extraído:", token ? `${token.substring(0, 15)}...` : "Não encontrado")
+
+    // Verificar token
+    if (!token) {
+      console.log("API OTP - Token não fornecido")
+      return NextResponse.json(
+        { error: "Não autorizado. Token não fornecido." },
+        { status: 401 }
+      )
+    }
+
+    // Verificar o token (apenas assinatura e expiração)
+    const decoded = verifyToken(token)
+    console.log("API OTP - Resultado da verificação do token:", decoded ? "Válido" : "Inválido")
+    
+    if (!decoded) {
+      console.log("API OTP - Token inválido ou expirado")
+      return NextResponse.json(
+        { error: "Não autorizado. Token inválido." },
+        { status: 401 }
+      )
+    }
+
+    // IMPORTANTE: Buscar as informações reais do usuário no banco de dados
+    const userId = decoded.userId;
+    console.log("API OTP - Buscando dados do usuário no banco, ID:", userId);
+    
+    const user = await getUserFromDatabase(userId);
+    
+    if (!user) {
+      console.log("API OTP - Usuário não encontrado no banco");
+      return NextResponse.json(
+        { error: "Usuário não encontrado ou inválido" },
+        { status: 401 }
+      );
+    }
+    
+    // Verificar se usuário é admin USANDO DADOS DO BANCO
+    const isAdmin = user.type === 'admin';
+    console.log("API OTP - Usuário verificado do banco:", user.name, "Tipo:", user.type, "Admin:", isAdmin);
+    
+    // Se não for admin, negar acesso
+    if (!isAdmin) {
+      console.log("API OTP - Acesso negado: usuário não é admin");
+      return NextResponse.json(
+        { error: "Acesso permitido apenas para administradores" },
+        { status: 403 }
+      );
+    }
+
     const otps = await getOtpsByUserId(userId)
     console.log("API OTP - Dados recuperados com sucesso, quantidade:", otps.length)
     
     // Retornar os dados no formato esperado pelo frontend: { items: [...] }
     return NextResponse.json({ items: otps })
   } catch (error) {
-    console.error("API OTP - Erro ao recuperar dados:", error)
+    console.error("API OTP - Erro grave na requisição:", error.message);
+    console.error("API OTP - Stack:", error.stack);
+    
     return NextResponse.json(
-      { error: "Erro ao recuperar dados" },
+      { error: "Erro interno do servidor ao processar requisição" },
       { status: 500 }
     )
   }

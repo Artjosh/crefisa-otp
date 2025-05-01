@@ -1,0 +1,23 @@
+{
+  "users": {
+    "userId1": {
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "hashed_password",
+      "type": "admin",
+      "createdAt": "2023-01-01T00:00:00Z"
+    }
+  },
+  "otp-items": {
+    "otpId1": {
+      "userId": "userId1",
+      "issuer": "Google",
+      "name": "Gmail",
+      "secret": "BASE32_SECRET",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "createdAt": "2023-01-02T00:00:00Z"
+    }
+  }
+}

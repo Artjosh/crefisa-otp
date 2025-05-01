@@ -1,53 +1,70 @@
 // structure.js
 
 const projectStructure = {
-  next: {},
-  app: {
-    '(authenticated)': {
-      'layout.jsx': 'Layout para área autenticada',
-      'page.jsx': 'Dashboard principal (protegida)'
-    },
-    api: {
-      auth: {
-        'route.js': 'Rota de login/autenticação - ✓ FEITO',
-        'register': {
-          'route.js': 'Rota de registro de usuários - ✓ FEITO'
+  'crefisa-otp': {
+    app: {
+      '(authenticated)': {
+        dashboard: {
+          'page.jsx': 'Página principal da dashboard (protegida)'
+        },
+        'layout.jsx': 'Layout compartilhado para área autenticada'
+      },
+      api: {
+        auth: {
+          register: {
+            'route.js': 'Registrar novos usuários'
+          },
+          'route.js': 'Login e geração de tokens JWT'
+        },
+        otp: {
+          '[id]': {
+            'route.js': 'CRUD por ID de OTP (GET, PUT, DELETE)'
+          },
+          parse: {
+            'route.js': 'Interpretar QR codes de TOTP'
+          },
+          'route.js': 'Listar e criar OTPs (GET, POST)'
+        },
+        user: {
+          verify: {
+            'route.js': 'Verificar usuário logado contra banco de dados'
+          }
         }
       },
-      otp: {
-        '[id]': {
-          'route.js': 'Rotas dinâmicas para manipulação de OTP específico - ✓ FEITO (verificado no middleware)'
-        },
-        parse: {
-          'route.js': 'Rota para parsing de QR codes - ✓ FEITO (verificado no middleware)'
-        },
-        'route.js': 'Rotas principais de OTP - ✓ FEITO (verificado no middleware)'
-      }
+      'globals.css': 'Estilos globais (Tailwind)',
+      'layout.jsx': 'Layout raiz da aplicação',
+      'page.jsx': 'Página inicial (login/registro)'
     },
-    'globals.css': 'Estilos globais da aplicação',
-    'layout.jsx': 'Layout principal da aplicação - ✓ FEITO',
-    'page.jsx': 'Página de login/registro (não protegida) - ✓ FEITO'
-  },
-  components: {
-    'register-form.jsx': 'Componente do formulário de registro com nome/senha - ✓ FEITO',
-    'login-error.jsx': 'Componente para mostrar erro quando não é admin - ✓ FEITO'
-  },
-  hooks: {},
-  lib: {
-    'firebase-admin.js': 'Configuração do Firebase Admin - ✓ FEITO',
-    'jwt.js': 'Gerenciamento de tokens JWT - ✓ FEITO',
-    'migration-parser.js': 'Parser para migração de dados',
-    'qr-decoder.js': 'Decodificador de QR codes',
-    'store.js': 'Gerenciamento de estado',
-    'totp.js': 'Lógica TOTP',
-    'utils.js': 'Funções utilitárias JS',
-    'utils.ts': 'Funções utilitárias TS'
-  },
-  'middleware.js': 'Middleware para proteção das rotas - ✓ FEITO',
-  node_modules: {},
-  out: {},
-  public: {},
-  styles: {}
+    components: {
+      ui: {},
+      'add-otp-dialog.jsx': 'Dialog para adicionar novos OTPs',
+      'filter-bar.jsx': 'Filtro para a lista de OTPs',
+      'login-error.jsx': 'Tela de erro para não-admins',
+      'login-form.jsx': 'Formulário de login',
+      'otp-dashboard.jsx': 'Container principal do dashboard',
+      'otp-header.jsx': 'Cabeçalho do dashboard',
+      'otp-item.jsx': 'Card para cada entrada OTP',
+      'otp-list.jsx': 'Lista de itens OTP',
+      'qr-scanner.jsx': 'Scanner de QR via câmera',
+      'qr-upload.jsx': 'Upload de QR code como imagem',
+      'register-form.jsx': 'Formulário de registro'
+    },
+    hooks: {
+      'use-toast.js': 'Hook para notificações toast'
+    },
+    lib: {
+      'firebase-admin.js': 'Inicialização do Firebase Admin',
+      'jwt.js': 'Geração e validação de tokens JWT',
+      'migration-parser.js': 'Parser para migração de OTPs',
+      'qr-decoder.js': 'Decodificador de QR codes',
+      'store.js': 'Estado global com Zustand',
+      'totp.js': 'Gerador de códigos TOTP',
+      'utils.js': 'Funções utilitárias'
+    },
+    'middleware.js': 'Middleware de autenticação',
+    'next.config.mjs': 'Configuração do Next.js (trailingSlash: false)',
+    '.env.local': 'Variáveis de ambiente (Firebase, JWT)'
+  }
 }
 
 export default projectStructure;

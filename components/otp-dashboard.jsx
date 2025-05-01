@@ -14,11 +14,16 @@ export default function OtpDashboard() {
   const [filters, setFilters] = useState({ issuer: "", name: "" })
   const { otpItems, loadOtpItems, isLoading, error } = useStore()
   const { toast } = useToast()
+  const [loadAttempted, setLoadAttempted] = useState(false)
 
   useEffect(() => {
-    console.log("OtpDashboard - Carregando itens OTP")
-    loadOtpItems()
-  }, [loadOtpItems])
+    if (!loadAttempted) {
+      console.log("OtpDashboard - Carregando itens OTP (primeira vez)")
+      loadOtpItems(true)
+      setLoadAttempted(true)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadAttempted])
 
   useEffect(() => {
     if (error) {
@@ -29,7 +34,7 @@ export default function OtpDashboard() {
         description: error,
         action: (
           <button
-            onClick={loadOtpItems}
+            onClick={() => loadOtpItems(true)}
             className="bg-destructive text-destructive-foreground px-3 py-1 rounded-md text-xs"
           >
             Tentar Novamente
@@ -37,7 +42,7 @@ export default function OtpDashboard() {
         ),
       })
     }
-  }, [error, toast, loadOtpItems])
+  }, [error, toast])
 
   const filteredItems = otpItems.filter((item) => {
     const matchIssuer = (item.issuer || "").toLowerCase().includes(filters.issuer.toLowerCase())
@@ -60,9 +65,13 @@ export default function OtpDashboard() {
         </div>
       )}
 
-      {!isLoading && <OtpList items={filteredItems} />}
+      {!isLoading && !error && <OtpList items={filteredItems} />}
 
-      <AddOtpDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddOtpDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen} 
+        onSuccess={() => loadOtpItems(true)}
+      />
     </div>
   )
 }
