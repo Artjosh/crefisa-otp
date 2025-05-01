@@ -1,0 +1,53 @@
+// structure.js
+
+const projectStructure = {
+  next: {},
+  app: {
+    '(authenticated)': {
+      'layout.jsx': 'Layout para área autenticada',
+      'page.jsx': 'Dashboard principal (protegida)'
+    },
+    api: {
+      auth: {
+        'route.js': 'Rota de login/autenticação - ✓ FEITO',
+        'register': {
+          'route.js': 'Rota de registro de usuários - ✓ FEITO'
+        }
+      },
+      otp: {
+        '[id]': {
+          'route.js': 'Rotas dinâmicas para manipulação de OTP específico - ✓ FEITO (verificado no middleware)'
+        },
+        parse: {
+          'route.js': 'Rota para parsing de QR codes - ✓ FEITO (verificado no middleware)'
+        },
+        'route.js': 'Rotas principais de OTP - ✓ FEITO (verificado no middleware)'
+      }
+    },
+    'globals.css': 'Estilos globais da aplicação',
+    'layout.jsx': 'Layout principal da aplicação - ✓ FEITO',
+    'page.jsx': 'Página de login/registro (não protegida) - ✓ FEITO'
+  },
+  components: {
+    'register-form.jsx': 'Componente do formulário de registro com nome/senha - ✓ FEITO',
+    'login-error.jsx': 'Componente para mostrar erro quando não é admin - ✓ FEITO'
+  },
+  hooks: {},
+  lib: {
+    'firebase-admin.js': 'Configuração do Firebase Admin - ✓ FEITO',
+    'jwt.js': 'Gerenciamento de tokens JWT - ✓ FEITO',
+    'migration-parser.js': 'Parser para migração de dados',
+    'qr-decoder.js': 'Decodificador de QR codes',
+    'store.js': 'Gerenciamento de estado',
+    'totp.js': 'Lógica TOTP',
+    'utils.js': 'Funções utilitárias JS',
+    'utils.ts': 'Funções utilitárias TS'
+  },
+  'middleware.js': 'Middleware para proteção das rotas - ✓ FEITO',
+  node_modules: {},
+  out: {},
+  public: {},
+  styles: {}
+}
+
+export default projectStructure;

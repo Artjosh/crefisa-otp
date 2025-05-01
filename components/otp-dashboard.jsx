@@ -16,11 +16,13 @@ export default function OtpDashboard() {
   const { toast } = useToast()
 
   useEffect(() => {
+    console.log("OtpDashboard - Carregando itens OTP")
     loadOtpItems()
   }, [loadOtpItems])
 
   useEffect(() => {
     if (error) {
+      console.log("OtpDashboard - Erro ao carregar:", error)
       toast({
         variant: "destructive",
         title: "Erro ao carregar códigos OTP",
