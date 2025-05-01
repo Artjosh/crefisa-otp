@@ -106,7 +106,7 @@ export async function GET(request, { params }) {
     const { id } = params
     
     const db = admin.database()
-    const itemRef = db.ref(`otps/${id}`)
+    const itemRef = db.ref(`otp-items/${id}`)
     
     const itemSnapshot = await itemRef.once("value")
     const item = itemSnapshot.val()
@@ -212,7 +212,7 @@ export async function PATCH(request, { params }) {
     const body = await request.json()
     
     const db = admin.database()
-    const itemRef = db.ref(`otps/${id}`)
+    const itemRef = db.ref(`otp-items/${id}`)
     
     // Verificar se o item existe
     const itemSnapshot = await itemRef.once("value")
@@ -336,7 +336,7 @@ export async function DELETE(request, { params }) {
     const { id } = params
     
     const db = admin.database()
-    const itemRef = db.ref(`otps/${id}`)
+    const itemRef = db.ref(`otp-items/${id}`)
     
     // Verificar se o item existe
     const itemSnapshot = await itemRef.once("value")

@@ -36,6 +36,7 @@ export async function middleware(request) {
     const decoded = verifyToken(token)
 
     if (!decoded) {
+      console.log('Middleware - Token inválido:', token)
       return NextResponse.json(
         { error: 'Não autorizado. Token inválido.' },
         { status: 401 }
