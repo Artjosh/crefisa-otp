@@ -4,7 +4,7 @@ import { memo, useState } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { Trash2, Edit2, Copy, Check, Loader2, CheckCircle2, Key } from "lucide-react"
+import { Trash2, Edit2, Copy, Check, Loader2, CheckCircle2, AtSign } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -86,8 +86,8 @@ const OtpCard = memo(
           )}
           
           <CardHeader className="p-4 pb-0 flex flex-col items-center">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1 font-mono">
-              <Key size={12} />
+            <div className="flex items-center gap-1 text-xl text-muted-foreground mb-1 font-mono">
+              <AtSign size={20} />
               <span>{item.id}</span>
             </div>
             <h3 className="font-medium text-card-foreground text-center">{item.issuer || "Unknown"}</h3>
