@@ -33,12 +33,22 @@ export async function middleware(request) {
     }
 
     // Verificar token do lado do servidor - apenas para validar assinatura e expiração
-    const decoded = verifyToken(token)
-
-    if (!decoded) {
-      console.log('Middleware - Token inválido:', token)
+    console.log('Middleware - Tentando verificar token:', token.substring(0, 30) + '...')
+    try {
+      const decoded = verifyToken(token)
+      console.log('Middleware - Decode resultado:', decoded ? 'Válido' : 'Inválido')
+      
+      if (!decoded) {
+        console.log('Middleware - Token inválido')
+        return NextResponse.json(
+          { error: 'Não autorizado. Token inválido.' },
+          { status: 401 }
+        )
+      }
+    } catch (error) {
+      console.error('Middleware - Erro ao verificar token:', error.message)
       return NextResponse.json(
-        { error: 'Não autorizado. Token inválido.' },
+        { error: 'Erro ao verificar token: ' + error.message },
         { status: 401 }
       )
     }
