@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import admin from "@/lib/firebase-admin"
 import { createToken } from "@/lib/jwt"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 export async function POST(request) {
   try {
