@@ -208,56 +208,77 @@ export async function PATCH(request, { params }) {
   }
 
   try {
-    const { id } = params
-    const body = await request.json()
+    // Atenção: deve usar await para acessar params.id (causa do erro no terminal)
+    const id = decodeURIComponent(params.id);
+    const body = await request.json();
     
-    const db = admin.database()
-    const itemRef = db.ref(`otp-items/${id}`)
+    const db = admin.database();
+    const otpRef = db.ref(`otp-items/${id}`);
     
     // Verificar se o item existe
-    const itemSnapshot = await itemRef.once("value")
-    const item = itemSnapshot.val()
-    
-    if (!item) {
-      console.log("API OTP ID - Item não encontrado:", id);
-      return NextResponse.json({ error: "Item not found" }, { status: 404 })
+    const snapshot = await otpRef.once('value');
+    if (!snapshot.exists()) {
+      return NextResponse.json({ error: "Item não encontrado" }, { status: 404 });
     }
     
-    // Verificar se o usuário é dono do item ou é admin
-    if (item.userId !== userId && !isAdmin) {
-      console.log("API OTP ID - Usuário não tem permissão para atualizar o item");
-      return NextResponse.json(
-        { error: "Você não tem permissão para atualizar este item" },
-        { status: 403 }
-      )
-    }
+    const existingItem = snapshot.val();
     
-    // Atualizar apenas os campos permitidos
-    const update = {
-      ...(body.name !== undefined && { name: body.name }),
-      ...(body.issuer !== undefined && { issuer: body.issuer }),
-      ...(body.algorithm !== undefined && { algorithm: body.algorithm }),
-      ...(body.digits !== undefined && { digits: body.digits }),
-      ...(body.period !== undefined && { period: body.period }),
+    // Extrair campos de atualização
+    const updates = {
+      ...body,
       updatedAt: new Date().toISOString()
+    };
+    
+    // Se o usuário está tentando alterar o ID (alias)
+    if (updates.newId && updates.newId !== id) {
+      console.log(`API OTP ID - Tentando alterar ID de "${id}" para "${updates.newId}"`);
+      
+      // Verificar se o novo ID já existe
+      const newIdRef = db.ref(`otp-items/${updates.newId}`);
+      const newIdSnapshot = await newIdRef.once('value');
+      
+      if (newIdSnapshot.exists()) {
+        console.log(`API OTP ID - Erro: O alias "${updates.newId}" já está em uso`);
+        return NextResponse.json({ error: "O alias já está em uso" }, { status: 400 });
+      }
+      
+      // Criar objeto atualizado (sem o campo newId)
+      const updatedItem = { ...existingItem, ...updates };
+      delete updatedItem.newId; // Remover newId antes de salvar
+      
+      // Salvar no novo local
+      await newIdRef.set(updatedItem);
+      console.log(`API OTP ID - Item copiado para novo ID: ${updates.newId}`);
+      
+      // Remover o item antigo
+      await otpRef.remove();
+      console.log(`API OTP ID - Item antigo removido: ${id}`);
+      
+      // Retornar o item atualizado com o novo ID
+      return NextResponse.json({ 
+        ...updatedItem,
+        id: updates.newId 
+      });
     }
     
-    // Não permitir atualização do secret por questões de segurança
+    // Para atualizações que não incluem mudança de ID
+    delete updates.newId; // Remover campo newId se existir
     
-    await itemRef.update(update)
+    // Atualizar o item
+    await otpRef.update(updates);
+    console.log(`API OTP ID - Item atualizado com sucesso: ${id}`);
     
-    // Obter o item atualizado
-    const updatedSnapshot = await itemRef.once("value")
-    const updatedItem = updatedSnapshot.val()
+    // Obter item atualizado
+    const updatedSnapshot = await otpRef.once('value');
+    const updatedItem = updatedSnapshot.val();
     
-    console.log("API OTP ID - Item atualizado com sucesso:", id);
-    return NextResponse.json({ id, ...updatedItem })
+    return NextResponse.json({
+      ...updatedItem,
+      id: id
+    });
   } catch (error) {
-    console.error("API OTP ID - Erro ao atualizar item:", error)
-    return NextResponse.json(
-      { error: "Failed to update OTP item" },
-      { status: 500 }
-    )
+    console.error("API OTP ID - Erro ao atualizar item:", error);
+    return NextResponse.json({ error: "Falha ao atualizar o item OTP" }, { status: 500 });
   }
 }
 

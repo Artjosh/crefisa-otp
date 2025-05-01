@@ -4,7 +4,7 @@ import { memo, useState } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { Trash2, Edit2, Copy, Check, Loader2, CheckCircle2 } from "lucide-react"
+import { Trash2, Edit2, Copy, Check, Loader2, CheckCircle2, Key } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,7 @@ const OtpCard = memo(
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [editedName, setEditedName] = useState(item.name || "")
     const [editedIssuer, setEditedIssuer] = useState(item.issuer || "")
+    const [editedAlias, setEditedAlias] = useState(item.id || "")
     const [isCopied, setIsCopied] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
@@ -43,6 +44,7 @@ const OtpCard = memo(
       await updateOtpItem(item.id, {
         name: editedName,
         issuer: editedIssuer,
+        newId: editedAlias !== item.id ? editedAlias : undefined // Apenas se alterado
       })
       setIsUpdating(false)
       setIsEditDialogOpen(false)
@@ -84,6 +86,10 @@ const OtpCard = memo(
           )}
           
           <CardHeader className="p-4 pb-0 flex flex-col items-center">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1 font-mono">
+              <Key size={12} />
+              <span>{item.id}</span>
+            </div>
             <h3 className="font-medium text-card-foreground text-center">{item.issuer || "Unknown"}</h3>
             <p className="text-sm text-muted-foreground text-center">{item.name || "Account"}</p>
             <div 
@@ -136,6 +142,17 @@ const OtpCard = memo(
               <DialogTitle>Edit OTP Account</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="alias" className="text-right">
+                  Alias (Chave)
+                </Label>
+                <Input
+                  id="alias"
+                  value={editedAlias}
+                  onChange={(e) => setEditedAlias(e.target.value)}
+                  className="col-span-3 font-mono"
+                />
+              </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="issuer" className="text-right">
                   Issuer

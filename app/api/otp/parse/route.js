@@ -105,13 +105,54 @@ export async function POST(request) {
   }
 
   try {
-    // Continuar com a lógica existente
-    const { qrData } = await request.json()
-    
+    // Extrair todos os dados da requisição, incluindo forceOverwrite
+    const { qrData, analyzeOnly, aliases, forceOverwrite } = await request.json();
+
     if (!qrData) {
-      return NextResponse.json({ error: "QR code data is required" }, { status: 400 })
+      return NextResponse.json({ error: "QR code data is required" }, { status: 400 });
     }
-    
+
+    // Se for apenas análise, processar sem salvar no banco
+    if (analyzeOnly) {
+      try {
+        let preview = [];
+        
+        if (qrData.startsWith("otpauth://")) {
+          // Handle standard OTP Auth URI
+          const otpData = parseOtpAuthUri(qrData);
+          if (!otpData || !otpData.secret) {
+            return NextResponse.json({ error: "Invalid OTP URI format" }, { status: 400 });
+          }
+          
+          // Retornar informações sobre o OTP (sem o segredo)
+          const { secret, ...safeData } = otpData;
+          preview = [safeData];
+          
+        } else if (qrData.startsWith("otpauth-migration://")) {
+          // Handle Google Authenticator migration data
+          const migrationData = parseMigrationUri(qrData);
+          
+          if (!migrationData || migrationData.length === 0) {
+            return NextResponse.json({ error: "No valid accounts found in migration data" }, { status: 400 });
+          }
+          
+          // Preparar informações sobre os OTPs (sem segredos)
+          preview = migrationData.map(item => {
+            const { secret, ...safeItem } = item;
+            return safeItem;
+          });
+        } else {
+          return NextResponse.json({ error: "Invalid QR code format" }, { status: 400 });
+        }
+        
+        return NextResponse.json({ preview });
+      } catch (error) {
+        console.error("API OTP Parse - Erro ao analisar QR code:", error);
+        return NextResponse.json({ error: "Failed to analyze QR code" }, { status: 500 });
+      }
+    }
+
+    // Continuar com o código existente para processamento e salvamento
     const db = admin.database()
     const otpRef = db.ref("otp-items")
     let results = []
@@ -125,7 +166,7 @@ export async function POST(request) {
       
       // Cria um novo item OTP
       const newItem = {
-        userId: userId, // Adiciona o ID do usuário verificado
+        userId: userId,
         issuer: otpData.issuer || "Unknown",
         name: otpData.name || "OTP Code",
         secret: otpData.secret,
@@ -136,18 +177,38 @@ export async function POST(request) {
         createdAt: new Date().toISOString(),
       }
       
-      // Salva no banco de dados
-      const newItemRef = otpRef.push()
-      await newItemRef.set(newItem)
+      // Usar o alias fornecido (se disponível)
+      let itemKey = aliases && aliases[0] ? aliases[0] : null;
+      
+      // Verificar se o alias já existe antes de salvar
+      if (itemKey) {
+        const existingRef = otpRef.child(itemKey);
+        const existingSnapshot = await existingRef.once('value');
+        
+        // Verificar se existe E se não está forçando sobrescrever
+        if (existingSnapshot.exists() && forceOverwrite !== true) {
+          return NextResponse.json({ 
+            error: "Alias já existe", 
+            existingAlias: itemKey,
+            code: "ALIAS_EXISTS"
+          }, { status: 409 }); // Conflict
+        }
+        
+        await existingRef.set(newItem);
+      } else {
+        const newItemRef = otpRef.push();
+        itemKey = newItemRef.key;
+        await newItemRef.set(newItem);
+      }
       
       // Retorna o resultado sem o segredo
-      const { secret, ...safeItem } = newItem
-      results.push({ id: newItemRef.key, ...safeItem })
+      const { secret, ...safeItem } = newItem;
+      results.push({ id: itemKey, ...safeItem });
       
       return NextResponse.json({ 
         message: `Added ${otpData.issuer || "OTP"} account successfully!`,
         items: results 
-      }, { status: 201 })
+      }, { status: 201 });
       
     } else if (qrData.startsWith("otpauth-migration://")) {
       // Handle Google Authenticator migration data
@@ -158,10 +219,11 @@ export async function POST(request) {
       }
       
       // Adiciona todos os items da migração
-      for (const account of migrationData) {
+      for (let i = 0; i < migrationData.length; i++) {
+        const account = migrationData[i];
         if (account && account.secret) {
           const newItem = {
-            userId: userId, // Adiciona o ID do usuário verificado
+            userId: userId,
             issuer: account.issuer || "Unknown",
             name: account.name || "Account",
             secret: account.secret,
@@ -170,15 +232,35 @@ export async function POST(request) {
             period: account.period || 30,
             type: account.type || "totp",
             createdAt: new Date().toISOString(),
+          };
+          
+          // Usar alias fornecido para este item (se disponível)
+          let itemKey = aliases && aliases[i] ? aliases[i] : null;
+          
+          // Verificar se o alias já existe antes de salvar
+          if (itemKey) {
+            const existingRef = otpRef.child(itemKey);
+            const existingSnapshot = await existingRef.once('value');
+            
+            // Verificar se existe E se não está forçando sobrescrever
+            if (existingSnapshot.exists() && forceOverwrite !== true) {
+              return NextResponse.json({ 
+                error: "Um ou mais aliases já existem", 
+                existingAlias: itemKey,
+                code: "ALIAS_EXISTS"
+              }, { status: 409 }); // Conflict
+            }
+            
+            await existingRef.set(newItem);
+          } else {
+            const newItemRef = otpRef.push();
+            itemKey = newItemRef.key;
+            await newItemRef.set(newItem);
           }
           
-          // Salva no banco de dados
-          const newItemRef = otpRef.push()
-          await newItemRef.set(newItem)
-          
           // Adiciona aos resultados sem o segredo
-          const { secret, ...safeItem } = newItem
-          results.push({ id: newItemRef.key, ...safeItem })
+          const { secret, ...safeItem } = newItem;
+          results.push({ id: itemKey, ...safeItem });
         }
       }
       
