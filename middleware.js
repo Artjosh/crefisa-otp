@@ -32,10 +32,12 @@ export async function middleware(request) {
       )
     }
 
+    let decoded;
+    
     // Verificar token do lado do servidor - apenas para validar assinatura e expiração
     console.log('Middleware - Tentando verificar token:', token.substring(0, 30) + '...')
     try {
-      const decoded = verifyToken(token)
+      decoded = verifyToken(token)
       console.log('Middleware - Decode resultado:', decoded ? 'Válido' : 'Inválido')
       
       if (!decoded) {
