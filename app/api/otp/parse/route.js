@@ -19,6 +19,7 @@ async function getUserFromDatabase(userId) {
     const userData = snapshot.val();
     
     if (!userData) {
+      console.log('API OTP Parse - Usuário não encontrado no banco:', userId);
       return null;
     }
     
@@ -27,58 +28,83 @@ async function getUserFromDatabase(userId) {
       userId
     };
   } catch (error) {
-    console.error('Erro ao buscar usuário no banco:', error);
+    console.error('API OTP Parse - Erro ao buscar usuário no banco:', error);
     return null;
   }
 }
 
 // POST - Parse QR code data and save to database
 export async function POST(request) {
+  console.log("API OTP Parse - Requisição POST recebida")
+  
+  // Obter o cabeçalho de autorização
+  const authHeader = request.headers.get("authorization")
+  console.log("API OTP Parse - Cabeçalho de autorização:", authHeader || "Não encontrado")
+  
+  // Extrair o token do cabeçalho
+  const token = authHeader?.startsWith("Bearer ") 
+    ? authHeader.substring(7) 
+    : null
+  
+  console.log("API OTP Parse - Token extraído:", token ? `${token.substring(0, 15)}...` : "Não encontrado")
+
+  // Verificar token
+  if (!token) {
+    console.log("API OTP Parse - Token não fornecido")
+    return NextResponse.json(
+      { error: "Não autorizado. Token não fornecido." },
+      { status: 401 }
+    )
+  }
+
+  // Verify token (no await here)
+  const decoded = verifyToken(token)
+  console.log("API OTP Parse - Resultado da verificação do token:", decoded ? "Válido" : "Inválido")
+  
+  if (!decoded) {
+    console.log("API OTP Parse - Token inválido ou expirado")
+    return NextResponse.json(
+      { error: "Não autorizado. Token inválido." },
+      { status: 401 }
+    )
+  }
+    
+  if (!decoded.userId) {
+    console.log("API OTP Parse - Token sem userId")
+    return NextResponse.json(
+      { error: "Não autorizado. Token inválido.", message: "Invalid Token" },
+      { status: 401 },
+    )
+  }
+
+  // IMPORTANTE: Buscar as informações reais do usuário no banco de dados
+  const userId = decoded.userId;
+  console.log("API OTP Parse - Buscando dados do usuário no banco, ID:", userId);
+  
+  const user = await getUserFromDatabase(userId);
+  
+  if (!user) {
+    console.log("API OTP Parse - Usuário não encontrado no banco");
+    return NextResponse.json(
+      { error: "Usuário não encontrado ou inválido" },
+      { status: 401 }
+    );
+  }
+  
+  // Verificar se usuário é admin USANDO DADOS DO BANCO
+  const isAdmin = user.type === 'admin';
+  console.log("API OTP Parse - Usuário verificado do banco:", user.name, "Tipo:", user.type, "Admin:", isAdmin);
+  
+  // Se não for admin, negar acesso
+  if (!isAdmin) {
+    console.log("API OTP Parse - Acesso negado: usuário não é admin");
+    return NextResponse.json(
+      { error: "Acesso permitido apenas para administradores" },
+      { status: 403 }
+    );
+  }
+
   try {
-    // Obter o cabeçalho de autorização
-    const authHeader = request.headers.get("authorization")
-    const token = authHeader?.startsWith("Bearer ") 
-      ? authHeader.substring(7) 
-      : null
-    
-    if (!token) {
-      return NextResponse.json(
-        { error: "Não autorizado. Token não fornecido." },
-        { status: 401 }
-      )
-    }
-
-    // Verificar o token
-    const decoded = verifyToken(token)
-    
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Não autorizado. Token inválido." },
-        { status: 401 }
-      )
-    }
-
-    // Buscar as informações do usuário no banco de dados
-    const userId = decoded.userId;
-    const user = await getUserFromDatabase(userId);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado ou inválido" },
-        { status: 401 }
-      );
-    }
-    
-    // Verificar se é admin
-    const isAdmin = user.type === 'admin';
-    
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Acesso permitido apenas para administradores" },
-        { status: 403 }
-      );
-    }
-    
     // Continuar com a lógica existente
     const { qrData } = await request.json()
     
@@ -165,7 +191,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid QR code format" }, { status: 400 })
     }
   } catch (error) {
-    console.error("Error processing QR code:", error)
+    console.error("API OTP Parse - Erro ao processar QR code:", error)
     return NextResponse.json({ error: "Failed to process QR code" }, { status: 500 })
   }
-} 
+}
