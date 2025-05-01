@@ -1,70 +1,58 @@
-// structure.js
-
-const projectStructure = {
-  'crefisa-otp': {
-    app: {
-      '(authenticated)': {
-        dashboard: {
-          'page.jsx': 'Página principal da dashboard (protegida)'
-        },
-        'layout.jsx': 'Layout compartilhado para área autenticada'
-      },
-      api: {
-        auth: {
-          register: {
-            'route.js': 'Registrar novos usuários'
-          },
-          'route.js': 'Login e geração de tokens JWT'
-        },
-        otp: {
-          '[id]': {
-            'route.js': 'CRUD por ID de OTP (GET, PUT, DELETE)'
-          },
-          parse: {
-            'route.js': 'Interpretar QR codes de TOTP'
-          },
-          'route.js': 'Listar e criar OTPs (GET, POST)'
-        },
-        user: {
-          verify: {
-            'route.js': 'Verificar usuário logado contra banco de dados'
-          }
-        }
-      },
-      'globals.css': 'Estilos globais (Tailwind)',
-      'layout.jsx': 'Layout raiz da aplicação',
-      'page.jsx': 'Página inicial (login/registro)'
-    },
-    components: {
-      ui: {},
-      'add-otp-dialog.jsx': 'Dialog para adicionar novos OTPs',
-      'filter-bar.jsx': 'Filtro para a lista de OTPs',
-      'login-error.jsx': 'Tela de erro para não-admins',
-      'login-form.jsx': 'Formulário de login',
-      'otp-dashboard.jsx': 'Container principal do dashboard',
-      'otp-header.jsx': 'Cabeçalho do dashboard',
-      'otp-item.jsx': 'Card para cada entrada OTP',
-      'otp-list.jsx': 'Lista de itens OTP',
-      'qr-scanner.jsx': 'Scanner de QR via câmera',
-      'qr-upload.jsx': 'Upload de QR code como imagem',
-      'register-form.jsx': 'Formulário de registro'
-    },
-    hooks: {
-      'use-toast.js': 'Hook para notificações toast'
-    },
-    lib: {
-      'firebase-admin.js': 'Inicialização do Firebase Admin',
-      'jwt.js': 'Geração e validação de tokens JWT',
-      'migration-parser.js': 'Parser para migração de OTPs',
-      'qr-decoder.js': 'Decodificador de QR codes',
-      'store.js': 'Estado global com Zustand',
-      'totp.js': 'Gerador de códigos TOTP',
-      'utils.js': 'Funções utilitárias'
-    },
-    'middleware.js': 'Middleware de autenticação',
-    'next.config.mjs': 'Configuração do Next.js (trailingSlash: false)',
-    '.env.local': 'Variáveis de ambiente (Firebase, JWT)'
-  }
-}
-
-export default projectStructure;
+📁 crefisa-otp/
+│
+├── 📁 app/
+│   ├── 📁 (authenticated)/
+│   │   ├── 📁 dashboard/
+│   │   │   └── 📄 page.jsx                # Página principal do dashboard (protegida, Suspense)
+│   │   └── 📄 layout.jsx                  # Layout compartilhado da área autenticada
+│   │
+│   ├── 📁 api/
+│   │   ├── 📁 auth/
+│   │   │   ├── 📁 register/
+│   │   │   │   └── 📄 route.js            # Registro de novos usuários
+│   │   │   └── 📄 route.js                # Login e geração de JWT
+│   │   │
+│   │   ├── 📁 otp/
+│   │   │   ├── 📁 [id]/
+│   │   │   │   └── 📄 route.js            # CRUD por ID (GET, PATCH, DELETE)
+│   │   │   ├── 📁 parse/
+│   │   │   │   └── 📄 route.js            # Interpretação de QR codes TOTP
+│   │   │   └── 📄 route.js                # Listagem de OTPs (GET)
+│   │   │
+│   │   └── 📁 user/
+│   │       └── 📁 verify/
+│   │           └── 📄 route.js            # Verificação do usuário logado
+│   │
+│   ├── 📄 globals.css                     # Estilos globais (Tailwind)
+│   ├── 📄 layout.jsx                      # Layout raiz da aplicação
+│   └── 📄 page.jsx                        # Página inicial (login/registro)
+│
+├── 📁 components/
+│   ├── 📁 ui/                             # Componentes reutilizáveis
+│   ├── 📄 add-otp-dialog.jsx              # Dialog para adicionar OTPs
+│   ├── 📄 filter-bar.jsx                  # Filtro para lista de OTPs
+│   ├── 📄 login-error.jsx                 # Tela para usuários não-admin
+│   ├── 📄 login-form.jsx                  # Formulário de login
+│   ├── 📄 otp-card.jsx                    # Card individual de OTP
+│   ├── 📄 otp-dashboard.jsx               # Container principal do dashboard
+│   ├── 📄 otp-header.jsx                  # Cabeçalho do dashboard
+│   ├── 📄 otp-list.jsx                    # Lista de OTPs
+│   ├── 📄 qr-scanner.jsx                  # Scanner de QR via câmera
+│   ├── 📄 qr-upload.jsx                   # Upload de QR code
+│   └── 📄 register-form.jsx               # Formulário de registro
+│
+├── 📁 hooks/
+│   └── 📄 use-toast.js                    # Hook para notificações toast
+│
+├── 📁 lib/
+│   ├── 📄 firebase-admin.js               # Inicialização do Firebase Admin
+│   ├── 📄 jwt.js                          # Geração e validação de JWTs
+│   ├── 📄 migration-parser.js             # Parser para migração de OTPs
+│   ├── 📄 qr-decoder.js                   # Decodificador de QR codes
+│   ├── 📄 store.js                        # Estado global (Zustand)
+│   ├── 📄 totp.js                         # Gerador de códigos TOTP
+│   └── 📄 utils.js                        # Funções utilitárias
+│
+├── 📄 middleware.js                       # Middleware de autenticação (Edge, limitado)
+├── 📄 next.config.mjs                     # Configuração do Next.js
+└── 📄 .env.local                          # Variáveis de ambiente
