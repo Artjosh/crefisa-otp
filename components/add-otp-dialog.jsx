@@ -14,18 +14,22 @@ export default function AddOtpDialog({ open, onOpenChange, onSuccess }) {
   const [activeTab, setActiveTab] = useState("upload")
   const [successMessage, setSuccessMessage] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const { loadOtpItems } = useStore()
+  const { loadOtpItems, getAuthHeaders } = useStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleQrCodeDetected = async (qrData) => {
     try {
       setIsProcessing(true)
       
+      // Obter cabeçalhos de autenticação do store
+      const authHeaders = getAuthHeaders()
+      
       // Enviar o QR code diretamente para o servidor processar
       const response = await fetch("/api/otp/parse/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders
         },
         body: JSON.stringify({ qrData }),
       })
